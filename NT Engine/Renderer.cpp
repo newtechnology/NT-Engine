@@ -1,6 +1,14 @@
 #include "Renderer.h"
 #include "Shaders.h"
+#include "SamplerStates.h"
+#include "TextureManager.h"
 #include "TriangleDemo.h"
+
+
+#if defined(DEBUG) | defined(_DEBUG) 
+#include <sstream>
+#endif
+
 
 namespace NTEngine
 {
@@ -24,10 +32,15 @@ namespace NTEngine
 		m_MultiSampleQuality = 0;
 	}
 
+
 	Renderer::~Renderer()
 	{
-
+		for (UINT i = 0; i < m_Models.size(); ++i)
+		{
+			SafeDelete(m_Models[i]);
+		}
 	}
+
 
 	void Renderer::Initialize(HWND HWnd, UINT Width, UINT Height)
 	{
@@ -121,12 +134,20 @@ namespace NTEngine
 		//So, instead of duplication the code, we just call OnResize() function
 		OnResize();
 
-		Shaders::Initialize(m_Device);
-
+		Shaders::Initialize(m_Device, m_DeviceContext);
 		InputLayoutDesc::Initialize();
 		InputLayouts::Initialize(m_Device);
+		SamplerStates::Initialize(m_Device);
+		TextureManager::Instance()->Initialize(m_Device);
 
-		TriangleDemo::Initialize(m_Device);
+		Lights::Material mat;
+
+		mat.Ambient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+		mat.Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		mat.Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+		mat.Reflect = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		Shaders::Basic->SetPerObjectData(mat);
 	}
 
 	void Renderer::OnResize()
@@ -194,33 +215,81 @@ namespace NTEngine
 		m_DeviceContext->RSSetViewports(1, &m_Viewport);
 	}
 
+	void Renderer::AddModel(Model* model, CXMMATRIX World)
+	{
+		m_Models.push_back(model);
+
+		XMFLOAT4X4 Worldf;
+		XMStoreFloat4x4(&Worldf, World);
+
+		m_WorldMatrix.push_back(Worldf);
+	}
+
 	void Renderer::Draw()
 	{
-		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView, reinterpret_cast<const float*>(&Colors::Blue));
+		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
 		m_DeviceContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		m_DeviceContext->IASetInputLayout(InputLayouts::PosColor);
-
 		m_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		
+		m_DeviceContext->IASetInputLayout(InputLayouts::Basic32);
+
+		m_DeviceContext->VSSetShader(Shaders::Basic->VertexShader, nullptr, 0);
+		m_DeviceContext->PSSetShader(Shaders::Basic->PixelShader, nullptr, 0);
+
+		static Lights::DirectionalLight light;
+
+		light.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		light.Diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+		light.Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		light.Direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
 
 
-		UINT Stride = TriangleDemo::VB->GetVertexStride();
-		UINT Offset = 0;
-		UINT IndexCount = TriangleDemo::IB->GetIndexCount();
+		for (UINT i = 0; i < m_Models.size(); ++i)
+		{
+			Shaders::Basic->SetTransform(XMLoadFloat4x4(&m_WorldMatrix[i]), TriangleDemo::Cam->GetViewXM(), TriangleDemo::Cam->GetProjXM(), XMMatrixIdentity());
+			Shaders::Basic->SetSampler(SamplerStates::SamLinear, 0);
+			Shaders::Basic->SetPerFrameData(TriangleDemo::Cam->GetPositionXM(), light);
 
-		ID3D11Buffer* VertexBuf = TriangleDemo::VB->GetVertexBuffer();
-		ID3D11Buffer* IndexBuf = TriangleDemo::IB->GetIndexBuffer();
-
-		m_DeviceContext->IASetVertexBuffers(0, 1, &VertexBuf, &Stride, &Offset);
-		m_DeviceContext->IASetIndexBuffer(IndexBuf, DXGI_FORMAT_R32_UINT, 0);
-
-		m_DeviceContext->VSSetShader(Shaders::Color->VertexShader, nullptr, 0);
-		m_DeviceContext->PSSetShader(Shaders::Color->PixelShader, nullptr, 0);
-
-		m_DeviceContext->DrawIndexed(3, 0, 0);
-
+			m_Models[i]->Render(m_DeviceContext, Shaders::Basic);
+		}
 
 		HR(m_SwapChain->Present(0, 0));
+	}
+
+#if defined(DEBUG) | defined(_DEBUG) 
+	VOID Renderer::CalculateFrameStats(const std::string& WindowName, const GameTimer& timer, const HWND& Hwnd)
+	{
+		static int FrameCnt = 0;
+		static float TimeElapsed = 0.0f;
+
+		FrameCnt++;
+
+		if ((timer.TotalTime() - TimeElapsed) >= 1.0f)
+		{
+			float FPS = (float)FrameCnt; //Frames per second = FrameCount / 1
+			float spf = (1.0f / FPS); //Seconds per frame = 1 / FrameCount (Reciprocal)
+			float mspf = spf * 1000.0f; //convert to milliseconds per frame
+
+			std::wostringstream outs;
+			outs.precision(8); //float precision
+
+			outs << WindowName.c_str() << "    "
+				<< "FPS: " << FPS << "    "
+				<< "Frame Time: " << mspf << "  (ms)";
+
+			SetWindowTextW(Hwnd, outs.str().c_str());
+
+			FrameCnt = 0;
+			TimeElapsed += 1.0f;
+		}
+	}
+#endif
+
+	VOID Renderer::GetResolution(UINT& Width, UINT& Height)
+	{
+		Width = m_ScreenWidth; 
+		Height = m_ScreenHeight;
 	}
 
 	ID3D11Device* Renderer::GetDevice()
@@ -278,5 +347,7 @@ namespace NTEngine
 		InputLayouts::Destroy();
 		Shaders::Destroy();
 		TriangleDemo::Destroy();
+		SamplerStates::Destroy();
+		TextureManager::Instance()->Destroy();
 	}
 }

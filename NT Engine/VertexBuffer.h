@@ -18,7 +18,7 @@ namespace NTEngine
 		DLLEXPORT inline UINT GetVertexCount()const;
 
 		template <typename VertexType>
-		VOID SetVertices(ID3D11Device* device,
+		VOID inline SetVertices(ID3D11Device* device,
 			const VertexType* vertices, UINT VertexCount,
 			D3D11_USAGE Usage = D3D11_USAGE_IMMUTABLE,
 			UINT CPUAccessFlags = 0, UINT MiscFlags = 0, UINT StructureByteStride = 0);
@@ -35,7 +35,7 @@ namespace NTEngine
 	{
 		//Release the old vertex buffer in case we're re-using it
 		ReleaseCOM(m_VertexBuffer);
-
+		
 		assert(device != nullptr);
 
 #if defined(DEBUG) | defined(_DEBUG)

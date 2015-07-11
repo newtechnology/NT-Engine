@@ -15,7 +15,6 @@ namespace NTEngine
 		HWND DLLEXPORT Initialize(HINSTANCE hInst, WNDPROC WindowProc, const std::string& WindowName, int nCmdShow, UINT Width,
 			UINT Height);
 
-	
 	};
 }
 

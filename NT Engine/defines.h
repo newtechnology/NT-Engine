@@ -4,6 +4,7 @@
 
 #include <xnamath.h>
 #include <iostream>
+#include <sys/stat.h>
 
 #ifdef _DLLEXPORT
 #define DLLEXPORT __declspec(dllexport)
@@ -53,6 +54,19 @@ static void OutputDebugString_Float(float f)
 	char OutputString[256];
 	sprintf_s(OutputString, "%f", f);
 	OutputDebugStringA(OutputString);
+}
+
+static std::string removeExtension(std::string filename)
+{
+	size_t lastdot = filename.find_last_of(".");
+	if (lastdot == std::string::npos) return filename;
+	return filename.substr(0, lastdot);
+}
+
+static inline bool FileExists(const std::string& name) 
+{
+	struct stat buffer;
+	return (stat(name.c_str(), &buffer) == 0);
 }
 
 static void OutputDebugString_Int(int i)

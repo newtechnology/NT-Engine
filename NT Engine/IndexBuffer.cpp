@@ -33,4 +33,9 @@ namespace NTEngine
 		return m_IndexBuffer;
 	}
 
+	DXGI_FORMAT IndexBuffer::GetIndexBufferFormat()
+	{
+		return m_IndexBufferFormat;
+	}
+
 }

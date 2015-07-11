@@ -2,12 +2,17 @@
 #define _RENDERER_H_
 
 #include "BasicIncludes.h"
-
+#include "Timer.h"
+#include "Model.h"
+#include "Shaders.h"
 #include <d3d11.h>
+#include <D3DX11.h>
 #include <assert.h>
 
 namespace NTEngine
 {
+
+
 	class Renderer
 	{
 	public:
@@ -15,10 +20,18 @@ namespace NTEngine
 		DLLEXPORT ~Renderer();
 
 		DLLEXPORT VOID Initialize(HWND HWnd, UINT Width, UINT Height);
+		
+		DLLEXPORT VOID AddModel(Model* model, CXMMATRIX World);
 		DLLEXPORT VOID Destroy();
 
 		DLLEXPORT VOID OnResize();
 		DLLEXPORT VOID Draw();
+
+#if defined(DEBUG) | defined(_DEBUG)
+		DLLEXPORT VOID CalculateFrameStats(const std::string& WindowName, const GameTimer& timer, const HWND& Hwnd);
+#endif
+
+		DLLEXPORT inline VOID GetResolution(UINT& Width, UINT& Height);
 
 		//Exported version: For calling outside DLL
 		DLLEXPORT inline ID3D11Device* _GetDevice(); 
@@ -47,6 +60,10 @@ namespace NTEngine
 
 		UINT m_ScreenWidth;
 		UINT m_ScreenHeight;
+
+		std::vector<Model*> m_Models;
+		std::vector<XMFLOAT4X4> m_WorldMatrix;
+
 	};
 }
 

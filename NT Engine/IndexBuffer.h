@@ -16,20 +16,22 @@ namespace NTEngine
 		DLLEXPORT inline ID3D11Buffer* GetIndexBuffer();
 		DLLEXPORT inline UINT GetIndexCount()const;
 
+		DLLEXPORT inline DXGI_FORMAT GetIndexBufferFormat();
 
 		template <typename T>
-		VOID SetIndices(ID3D11Device* device, const T* Indices, UINT NumberOfIndices,
+		VOID inline SetIndices(ID3D11Device* device, const T* Indices, UINT NumberOfIndices, DXGI_FORMAT Format,
 			D3D11_USAGE Usage = D3D11_USAGE_IMMUTABLE,
 			UINT CPUAccessFlags = 0, UINT MiscFlags = 0, UINT StructureByteStride = 0);
 
 	private:
 		ID3D11Buffer* m_IndexBuffer;
 		UINT m_IndexCount;
+		DXGI_FORMAT m_IndexBufferFormat;
 	};
 
 
 	template <typename IndexType>
-	void IndexBuffer::SetIndices(ID3D11Device* device, const IndexType* indices, UINT NumberOfIndices,
+	void IndexBuffer::SetIndices(ID3D11Device* device, const IndexType* indices, UINT NumberOfIndices, DXGI_FORMAT Format,
 		D3D11_USAGE Usage, UINT CPUAccessFlags, UINT MiscFlags, UINT StructureByteStride)
 	{
 		//Release the old Index Buffer in case we're re-using it
@@ -37,11 +39,12 @@ namespace NTEngine
 
 		assert(device);
 
+		m_IndexBufferFormat = Format;
+
 #if defined(DEBUG) | defined(_DEBUG)
 		if (NumberOfIndices == 0)
 			ShowError("The NumberOfIndices parameter in IndexBuffer::SetIndices() cannot be zero.");
 #endif
-
 
 		m_IndexCount = NumberOfIndices;
 

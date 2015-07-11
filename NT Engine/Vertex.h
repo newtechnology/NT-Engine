@@ -9,10 +9,12 @@ namespace NTEngine
 {
 	namespace Vertex
 	{
-		struct Color
+
+		struct Basic32
 		{
 			XMFLOAT3 Pos;
-			XMFLOAT4 RGBAColor;
+			XMFLOAT3 Normal;
+			XMFLOAT2 Tex;
 		};
 	}
 
@@ -22,7 +24,7 @@ namespace NTEngine
 	public:
 		static void Initialize();
 
-		static D3D11_INPUT_ELEMENT_DESC PosColor[2];
+		static D3D11_INPUT_ELEMENT_DESC Basic32[3];
 	};
 
 
@@ -32,7 +34,7 @@ namespace NTEngine
 		static void Initialize(ID3D11Device* device);
 		static void Destroy();
 
-		static ID3D11InputLayout* PosColor;
+		static ID3D11InputLayout* Basic32;
 
 	};
 }

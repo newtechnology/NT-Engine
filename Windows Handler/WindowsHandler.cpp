@@ -42,5 +42,4 @@ namespace NTEngine
 		return HWnd;
 	}
 
-
 }
