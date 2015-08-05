@@ -1,6 +1,6 @@
 #include "TextureManager.h"
-#include <D3DX11.h>
 #include <assert.h>
+
 
 namespace NTEngine
 {
@@ -21,6 +21,8 @@ namespace NTEngine
 		m_Device = dev;
 	}
 
+
+
 	ID3D11ShaderResourceView* TextureManager::Create(std::string filePath)
 	{
 #if defined(DEBUG) | defined(_DEBUG)
@@ -35,7 +37,12 @@ namespace NTEngine
 		}
 		else
 		{
-			HR(D3DX11CreateShaderResourceViewFromFile(m_Device, filePath.c_str(), 0, 0, &SRV, 0));
+	
+			std::wstring widestr = std::wstring(filePath.begin(), filePath.end());
+			const wchar_t* wc = widestr.c_str();
+
+			ID3D11Resource* res;
+			HR(DirectX::CreateDDSTextureFromFile(m_Device, wc, &res, &SRV));
 
 			m_Textures[filePath] = SRV;
 		}

@@ -4,6 +4,7 @@
 #include "BasicIncludes.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Vertex.h"
 
 #include <vector>
 #include <assimp\Importer.hpp>
@@ -31,58 +32,62 @@ namespace NTEngine
 	{
 	public:
 		DLLEXPORT Model();
-		DLLEXPORT ~Model();
+		virtual DLLEXPORT ~Model();
 
-		DLLEXPORT VOID LoadFromFile(ID3D11Device* dev, const std::string& file, bool HasNormalMaps);
-
-		template <typename ShaderType>
-		DLLEXPORT VOID inline Render(ID3D11DeviceContext* devcon, ShaderType* Shader);
-
-	private:
+		DLLEXPORT virtual VOID LoadFromFile(ID3D11Device* dev, const std::string& file) = 0;
+	
+	protected:
+		DLLEXPORT VOID ExtractIndices(ID3D11Device* dev, const aiScene* scene);
+		DLLEXPORT VOID LoadIndices(ID3D11Device* dev, std::vector<UINT>& indices);
 		VOID inline LoadDiffuseMap(aiMaterial* mat);
-		VOID inline LoadNormalMap(aiMaterial* mat);
 
-	private:
+	protected:
 		VertexBuffer* m_VertexBuffer;
 		IndexBuffer* m_IndexBuffer;
 
 		UINT m_NumVertices;
 		UINT m_NumFaces;
+		UINT m_Flags;
 
 		bool m_HasNormalMaps;
 
 		std::vector<Subset> m_Subsets;
+
 		std::vector<ID3D11ShaderResourceView*> m_DiffuseMaps;
-		std::vector<ID3D11ShaderResourceView*> m_NormalMaps;
+
+	};
+
+	class BasicModel : public Model
+	{
+	public:
+		BasicModel() {};
+		~BasicModel() {};
+
+		DLLEXPORT VOID LoadFromFile(ID3D11Device* dev, const std::string& file);
+
+		DLLEXPORT VOID inline Render(ID3D11DeviceContext* devcon);
+
 	};
 
 
-	template <typename ShaderType>
-	void Model::Render(ID3D11DeviceContext* devcon, ShaderType* Shader)
+	class NormalMappedModel : public Model
 	{
-		UINT offset = 0;
+	public:
+		NormalMappedModel() {}
+		~NormalMappedModel() {}
 
-		const UINT& VertexStride = m_VertexBuffer->GetVertexStride();
+		DLLEXPORT VOID LoadFromFile(ID3D11Device* dev, const std::string& file);
 
-		ID3D11Buffer* VB = m_VertexBuffer->GetVertexBuffer();
-		ID3D11Buffer* IB = m_IndexBuffer->GetIndexBuffer();
+		DLLEXPORT VOID inline Render(ID3D11DeviceContext* devcon);
 
-		devcon->IASetVertexBuffers(0, 1, &VB, &VertexStride, &offset);
-		devcon->IASetIndexBuffer(IB, m_IndexBuffer->GetIndexBufferFormat(), 0);
+	private:
+		VOID inline LoadNormalMap(aiMaterial* mat);
 
-		devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		for (UINT i = 0; i < m_Subsets.size(); ++i)
-		{
-			if (m_DiffuseMaps[i] == nullptr)
-				continue;
+	private:
+		std::vector<ID3D11ShaderResourceView*> m_NormalMaps;
+	};
 
 	
-			Shader->SetDiffuseMap(m_DiffuseMaps[i]);
-
-			devcon->DrawIndexed(m_Subsets[i].FaceCount * 3, m_Subsets[i].FaceStart * 3, 0);
-		}
-	}
 
 }
 

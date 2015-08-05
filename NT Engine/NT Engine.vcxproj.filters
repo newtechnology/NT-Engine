@@ -39,6 +39,12 @@
     <Filter Include="Shaders\Basic">
       <UniqueIdentifier>{11dd2e10-fdbb-4516-b778-9a2ad7cbdc20}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\NormalMap">
+      <UniqueIdentifier>{fa7d7b81-19d1-4427-8963-4e83ab5e9e30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ShadowMap">
+      <UniqueIdentifier>{cbf2a06b-cc32-47da-9eca-cb136bc98873}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -64,9 +70,6 @@
     </ClInclude>
     <ClInclude Include="Shaders.h">
       <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="TriangleDemo.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConstantBuffer.h">
       <Filter>Header Files\Graphics</Filter>
@@ -95,6 +98,12 @@
     <ClInclude Include="TextureManager.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizerStates.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
@@ -114,9 +123,6 @@
     </ClCompile>
     <ClCompile Include="Shaders.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="TriangleDemo.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConstantBuffer.cpp">
       <Filter>Source Files\Graphics</Filter>
@@ -142,6 +148,12 @@
     <ClCompile Include="TextureManager.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizerStates.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\basic_ps.hlsl">
@@ -149,6 +161,18 @@
     </FxCompile>
     <FxCompile Include="Shaders\basic_vs.hlsl">
       <Filter>Shaders\Basic</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\NormalMap_PS.hlsl">
+      <Filter>Shaders\NormalMap</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\NormalMap_VS.hlsl">
+      <Filter>Shaders\NormalMap</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\BuildShadowMap_PS.hlsl">
+      <Filter>Shaders\ShadowMap</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\BuildShadowMap_VS.hlsl">
+      <Filter>Shaders\ShadowMap</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

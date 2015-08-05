@@ -2,10 +2,10 @@
 
 cbuffer cbPerFrame : register(b0)
 {
-	DirectionalLight DirLight;
+	DirectionalLight DirLights[MAX_DIR_LIGHTS];
 
 	float3 CameraPosW;
-	float Pad;
+	int NumDirLights;
 };
 
 
@@ -35,7 +35,7 @@ float4 PS(VertexOut pin) : SV_Target
 
 	float4 TexColor = DiffuseMap.Sample(samLinear, pin.Tex);
 
-	float4 FinalColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 FinalColor = TexColor;
 
 	float3 toEye = CameraPosW - pin.PosW;
 
@@ -44,15 +44,27 @@ float4 PS(VertexOut pin) : SV_Target
 	//normalize
 	toEye /= DistanceToEye;
 
-	float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
-	float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
-	float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	if (NumDirLights > 0)
+	{
+		float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-	ComputeDirectionalLight(ObjectMaterial, DirLight, pin.NormalW, toEye, ambient, diffuse, spec);
+		[unroll]
+		for (int i = 0; i < NumDirLights; ++i)
+		{
+			float4 A, D, S;
+			ComputeDirectionalLight(ObjectMaterial, DirLights[i], pin.NormalW, toEye, A, D, S);
 
-	FinalColor = TexColor * (ambient + diffuse) + spec;
+			ambient += A;
+			diffuse += D;
+			spec += S;
+		}
 
-	FinalColor.a = ObjectMaterial.Diffuse.a * TexColor.a;
+		FinalColor = TexColor * (ambient + diffuse) + spec;
+
+		FinalColor.a = ObjectMaterial.Diffuse.a * TexColor.a;
+	}
 
 	return FinalColor;
 }

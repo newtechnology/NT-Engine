@@ -14,10 +14,10 @@ namespace NTEngine
 				ZeroMemory(this, sizeof(Material));
 			}
 
-			XMFLOAT4 Ambient;
-			XMFLOAT4 Diffuse;
-			XMFLOAT4 Specular; //w = SpecPower
-			XMFLOAT4 Reflect;
+			DirectX::XMFLOAT4 Ambient;
+			DirectX::XMFLOAT4 Diffuse;
+			DirectX::XMFLOAT4 Specular; //w = SpecPower
+			DirectX::XMFLOAT4 Reflect;
 
 		};
 
@@ -28,10 +28,10 @@ namespace NTEngine
 				ZeroMemory(this, sizeof(DirectionalLight));
 			}
 
-			XMFLOAT4 Ambient;
-			XMFLOAT4 Diffuse;
-			XMFLOAT4 Specular;
-			XMFLOAT3 Direction;
+			DirectX::XMFLOAT4 Ambient;
+			DirectX::XMFLOAT4 Diffuse;
+			DirectX::XMFLOAT4 Specular;
+			DirectX::XMFLOAT3 Direction;
 			float pad;
 		};
 	}

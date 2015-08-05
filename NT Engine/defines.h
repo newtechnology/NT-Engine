@@ -2,9 +2,12 @@
 #define _DEFINES_A_H_
 
 
-#include <xnamath.h>
+#include <DirectXMath.h>
+#include "DDSTextureLoader.h"
+#include <DirectXColors.h>
 #include <iostream>
 #include <sys/stat.h>
+
 
 #ifdef _DLLEXPORT
 #define DLLEXPORT __declspec(dllexport)
@@ -18,25 +21,29 @@
 
 #define SINGLE_THREADED
 
-
-#if defined(DEBUG) | defined(_DEBUG)
 #ifndef HR
-#define HR(x)                                              \
-		{                                                          \
-		HRESULT hr = (x);                                      \
-		if(FAILED(hr))                                         \
-				{                                                      \
-			DXTrace(__FILE__, (DWORD)__LINE__, hr, #x, true); \
-				}                                                      \
+#define HR(x)									                \
+		{									                    \
+		HRESULT hr = (x);						                \
+		if(FAILED(hr))							                \
+				{								                \
+			LPSTR output;                                    	\
+			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |		    \
+				FORMAT_MESSAGE_IGNORE_INSERTS 	 |		        \
+				FORMAT_MESSAGE_ALLOCATE_BUFFER,			        \
+				NULL,						                    \
+				hr,						                        \
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),	    \
+				(LPTSTR) &output,				                \
+				0,						                        \
+				NULL);					                        \
+			MessageBox(NULL, output, "Error", MB_OK);		    \
+				}								                \
 		}
-#endif
-
 #else
-
 #ifndef HR
 #define HR(x) (x)
 #endif
-
 #endif 
 
 static void ShowError(LPCSTR error_message)
@@ -56,7 +63,17 @@ static void OutputDebugString_Float(float f)
 	OutputDebugStringA(OutputString);
 }
 
-static std::string removeExtension(std::string filename)
+static void OutputDebugString_Int(int i)
+{
+	char OutputString[256];
+	sprintf_s(OutputString, "%d", i);
+	OutputDebugStringA(OutputString);
+}
+
+#endif //DEBUG
+
+
+static inline std::string removeExtension(std::string filename)
 {
 	size_t lastdot = filename.find_last_of(".");
 	if (lastdot == std::string::npos) return filename;
@@ -67,30 +84,6 @@ static inline bool FileExists(const std::string& name)
 {
 	struct stat buffer;
 	return (stat(name.c_str(), &buffer) == 0);
-}
-
-static void OutputDebugString_Int(int i)
-{
-	char OutputString[256];
-	sprintf_s(OutputString, "%d", i);
-	OutputDebugStringA(OutputString);
-}
-
-#endif //DEBUG
-
-namespace Colors
-{
-	XMGLOBALCONST XMVECTORF32 White = { 1.0f, 1.0f, 1.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Black = { 0.0f, 0.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Red = { 1.0f, 0.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Green = { 0.0f, 1.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Blue = { 0.0f, 0.0f, 1.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Yellow = { 1.0f, 1.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Cyan = { 0.0f, 1.0f, 1.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Magenta = { 1.0f, 0.0f, 1.0f, 1.0f };
-
-	XMGLOBALCONST XMVECTORF32 Silver = { 0.75f, 0.75f, 0.75f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 LightSteelBlue = { 0.69f, 0.77f, 0.87f, 1.0f };
 }
 
 

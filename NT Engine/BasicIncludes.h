@@ -4,7 +4,6 @@
 
 //Windows header file:
 #include <Windows.h>
-#include <DxErr.h>
 
 //Additional header files:
 #include "defines.h"

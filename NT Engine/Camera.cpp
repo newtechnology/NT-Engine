@@ -1,6 +1,8 @@
 #include "Camera.h"
 #include "Math.h"
 
+using namespace DirectX;
+
 
 namespace NTEngine
 {

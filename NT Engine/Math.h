@@ -10,7 +10,7 @@ namespace NTEngine
 	{
 	public:
 		template <typename T>
-		DLLEXPORT static T Min(const T& a, const T& b)
+		DLLEXPORT static inline T Min(const T& a, const T& b)
 		{
 			//If 'a' is less than 'b', then return 'a' 
 			//otherwise return 'b'
@@ -18,7 +18,7 @@ namespace NTEngine
 		}
 
 		template <typename T>
-		DLLEXPORT static T Max(const T& a, const T& b)
+		DLLEXPORT static inline T Max(const T& a, const T& b)
 		{
 			//If 'a' is more than 'b', then return 'a'
 			//otherwise return 'b'
@@ -26,7 +26,7 @@ namespace NTEngine
 		}
 
 		template <typename T>
-		DLLEXPORT static T Lerp(const T& a, const T& b, float t)
+		DLLEXPORT static inline T Lerp(const T& a, const T& b, float t)
 		{
 			//Linearly interpolates between 'a' and 'b' based on given factor 't' which ranges between 0 and 1
 			//if t = 0, then 'a' will be returned 
@@ -37,7 +37,7 @@ namespace NTEngine
 		}
 
 		template <typename T>
-		DLLEXPORT static T Clamp(const T& x, const T& min, const T& max)
+		DLLEXPORT static inline T Clamp(const T& x, const T& min, const T& max)
 		{
 			//Clamps 'x' between 'min' and 'max'
 			//if 'x' is less than 'min', then 'min' would be returned
@@ -58,20 +58,20 @@ namespace NTEngine
 			//return x < low ? low : (x > high ? high : x); 
 		}
 
-		DLLEXPORT static XMMATRIX InverseTranspose(CXMMATRIX M)
+		DLLEXPORT static inline DirectX::XMMATRIX InverseTranspose(DirectX::CXMMATRIX M)
 		{
 			//make a copy because we're going to zero-out the translation row in the matrix
 			//if we do that without making a copy of 'M', then the original matrix which is passed
 			//in this function's parameter would also lose the translation row because our parameter is CXMMATRIX
 
-			XMMATRIX A = M;
+			DirectX::XMMATRIX A = M;
 
 			//Zero out the translation row because "InverseTranspose" is applied to normals
 			//and normals are vectors
 			//So, we don't need or want the inverse-transpose of the translation
-			A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+			A.r[3] = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 
-			XMVECTOR det = XMMatrixDeterminant(A);
+			DirectX::XMVECTOR det = XMMatrixDeterminant(A);
 			return XMMatrixTranspose(XMMatrixInverse(&det, A));
 		}
 

@@ -5,6 +5,8 @@
 
 #include <vector>
 
+using namespace DirectX;
+
 namespace NTEngine
 {
 	class GeometryGenerator

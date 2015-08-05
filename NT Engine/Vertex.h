@@ -12,9 +12,17 @@ namespace NTEngine
 
 		struct Basic32
 		{
-			XMFLOAT3 Pos;
-			XMFLOAT3 Normal;
-			XMFLOAT2 Tex;
+			DirectX::XMFLOAT3 Pos;
+			DirectX::XMFLOAT3 Normal;
+			DirectX::XMFLOAT2 Tex;
+		};
+
+		struct NormalMap
+		{
+			DirectX::XMFLOAT3 Pos;
+			DirectX::XMFLOAT3 Normal;
+			DirectX::XMFLOAT2 Tex;
+			DirectX::XMFLOAT3 Tangent;
 		};
 	}
 
@@ -25,6 +33,7 @@ namespace NTEngine
 		static void Initialize();
 
 		static D3D11_INPUT_ELEMENT_DESC Basic32[3];
+		static D3D11_INPUT_ELEMENT_DESC NormalMap[4];
 	};
 
 
@@ -35,7 +44,7 @@ namespace NTEngine
 		static void Destroy();
 
 		static ID3D11InputLayout* Basic32;
-
+		static ID3D11InputLayout* NormalMap;
 	};
 }
 

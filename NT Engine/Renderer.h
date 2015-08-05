@@ -5,13 +5,12 @@
 #include "Timer.h"
 #include "Model.h"
 #include "Shaders.h"
+#include "Camera.h"
 #include <d3d11.h>
-#include <D3DX11.h>
 #include <assert.h>
 
 namespace NTEngine
 {
-
 
 	class Renderer
 	{
@@ -21,7 +20,12 @@ namespace NTEngine
 
 		DLLEXPORT VOID Initialize(HWND HWnd, UINT Width, UINT Height);
 		
-		DLLEXPORT VOID AddModel(Model* model, CXMMATRIX World);
+		DLLEXPORT VOID AddBasicModel(BasicModel* model, DirectX::CXMMATRIX World);
+		DLLEXPORT VOID AddNormalMappedModel(NormalMappedModel* model, DirectX::CXMMATRIX World);
+		DLLEXPORT VOID EnableMSAA(UINT MultiSampleCount);
+		DLLEXPORT VOID SetCamera(Camera* cam);
+		DLLEXPORT VOID AddDirectionalLight(const Lights::DirectionalLight& Light);
+
 		DLLEXPORT VOID Destroy();
 
 		DLLEXPORT VOID OnResize();
@@ -61,8 +65,17 @@ namespace NTEngine
 		UINT m_ScreenWidth;
 		UINT m_ScreenHeight;
 
-		std::vector<Model*> m_Models;
-		std::vector<XMFLOAT4X4> m_WorldMatrix;
+		Camera* m_Camera;
+	
+		//Basic models
+		std::vector<BasicModel*> m_BasicModels;
+		std::vector<DirectX::XMFLOAT4X4> m_BasicModelsWorldMatrix;
+
+		//Normal mapped models
+		std::vector<NormalMappedModel*> m_NormalMappedModels;
+		std::vector<DirectX::XMFLOAT4X4> m_NormalMappedModelsWorldMatrix;
+
+		std::vector<Lights::DirectionalLight> m_DirLights;
 
 	};
 }

@@ -12,27 +12,27 @@ namespace NTEngine
 		DLLEXPORT ~Camera();
 
 		//get camera position
-		DLLEXPORT inline XMFLOAT3 GetPosition()const;
-		DLLEXPORT inline XMVECTOR GetPositionXM()const;
+		DLLEXPORT inline DirectX::XMFLOAT3 GetPosition()const;
+		DLLEXPORT inline DirectX::XMVECTOR GetPositionXM()const;
 
 		//set camera position
 		DLLEXPORT inline void SetPosition(float x, float y, float z);
-		DLLEXPORT inline void SetPosition(const XMFLOAT3& pos);
+		DLLEXPORT inline void SetPosition(const DirectX::XMFLOAT3& pos);
 
 		//get basis vectors
-		DLLEXPORT inline XMFLOAT3 GetRightVector()const;
-		DLLEXPORT inline XMVECTOR GetRightVectorXM()const;
+		DLLEXPORT inline DirectX::XMFLOAT3 GetRightVector()const;
+		DLLEXPORT inline DirectX::XMVECTOR GetRightVectorXM()const;
 
-		DLLEXPORT inline XMFLOAT3 GetUpVector()const;
-		DLLEXPORT inline XMVECTOR GetUpVectorXM()const;
+		DLLEXPORT inline DirectX::XMFLOAT3 GetUpVector()const;
+		DLLEXPORT inline DirectX::XMVECTOR GetUpVectorXM()const;
 
-		DLLEXPORT inline XMFLOAT3 GetForwardVector()const;
-		DLLEXPORT inline XMVECTOR GetForwardVectorXM()const;
+		DLLEXPORT inline DirectX::XMFLOAT3 GetForwardVector()const;
+		DLLEXPORT inline DirectX::XMVECTOR GetForwardVectorXM()const;
 
 		//get matrices
-		DLLEXPORT inline XMMATRIX GetViewXM()const;
-		DLLEXPORT inline XMMATRIX GetProjXM()const;
-		DLLEXPORT inline XMMATRIX GetViewProjXM()const;
+		DLLEXPORT inline DirectX::XMMATRIX GetViewXM()const;
+		DLLEXPORT inline DirectX::XMMATRIX GetProjXM()const;
+		DLLEXPORT inline DirectX::XMMATRIX GetViewProjXM()const;
 		
 
 
@@ -72,10 +72,10 @@ namespace NTEngine
 		DLLEXPORT void UpdateViewMatrix();
 
 	private:
-		XMFLOAT3 m_Pos;    //position of our camera
-		XMFLOAT3 m_Right; //Right vector
-		XMFLOAT3 m_Up; //Up vector. Usually it is (0, 1, 0)
-		XMFLOAT3 m_forward; //forward or look vector
+		DirectX::XMFLOAT3 m_Pos;    //position of our camera
+		DirectX::XMFLOAT3 m_Right; //Right vector
+		DirectX::XMFLOAT3 m_Up; //Up vector. Usually it is (0, 1, 0)
+		DirectX::XMFLOAT3 m_forward; //forward or look vector
 
 
 		//frustum properties
@@ -88,8 +88,8 @@ namespace NTEngine
 		float m_FarWindowHeight;
 
 
-		XMFLOAT4X4 m_View; //view matrix
-		XMFLOAT4X4 m_Proj; //projection matrix
+		DirectX::XMFLOAT4X4 m_View; //view matrix
+		DirectX::XMFLOAT4X4 m_Proj; //projection matrix
 
 	};
 

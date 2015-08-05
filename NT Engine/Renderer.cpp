@@ -1,14 +1,16 @@
 #include "Renderer.h"
 #include "Shaders.h"
 #include "SamplerStates.h"
+#include "RasterizerStates.h"
 #include "TextureManager.h"
-#include "TriangleDemo.h"
-
+#include "Vertex.h"
+#include "MouseInput.h"
 
 #if defined(DEBUG) | defined(_DEBUG) 
 #include <sstream>
 #endif
 
+using namespace DirectX;
 
 namespace NTEngine
 {
@@ -21,6 +23,7 @@ namespace NTEngine
 		m_RenderTargetView = nullptr;
 		m_DepthStencilView = nullptr;
 
+		m_Camera = nullptr;
 		m_DepthStencilBuffer = nullptr;
 
 		//default resolution
@@ -35,12 +38,20 @@ namespace NTEngine
 
 	Renderer::~Renderer()
 	{
-		for (UINT i = 0; i < m_Models.size(); ++i)
-		{
-			SafeDelete(m_Models[i]);
-		}
+		for (UINT i = 0; i < m_BasicModels.size(); ++i)
+			SafeDelete(m_BasicModels[i]);
+		
+		for (UINT i = 0; i < m_NormalMappedModels.size(); ++i)
+			SafeDelete(m_NormalMappedModels[i]);
+		
+		SafeDelete(m_Camera);
 	}
 
+	void Renderer::EnableMSAA(UINT MultiSampleCount)
+	{
+		m_EnableMSAA = true;
+		m_MultiSampleCount = MultiSampleCount;
+	}
 
 	void Renderer::Initialize(HWND HWnd, UINT Width, UINT Height)
 	{
@@ -138,16 +149,20 @@ namespace NTEngine
 		InputLayoutDesc::Initialize();
 		InputLayouts::Initialize(m_Device);
 		SamplerStates::Initialize(m_Device);
+		RasterizerStates::Initialize(m_Device);
 		TextureManager::Instance()->Initialize(m_Device);
+		MouseInput::Instance()->Initialize(m_ScreenWidth, m_ScreenHeight, false, true);
+	
 
 		Lights::Material mat;
 
 		mat.Ambient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
-		mat.Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+		mat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 		mat.Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
 		mat.Reflect = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		Shaders::Basic->SetPerObjectData(mat);
+		Shaders::Basic->SetMaterial(mat);
+		Shaders::NormalMap->SetMaterial(mat);
 	}
 
 	void Renderer::OnResize()
@@ -215,18 +230,54 @@ namespace NTEngine
 		m_DeviceContext->RSSetViewports(1, &m_Viewport);
 	}
 
-	void Renderer::AddModel(Model* model, CXMMATRIX World)
+	void Renderer::SetCamera(Camera* cam)
 	{
-		m_Models.push_back(model);
+#if defined(DEBUG) | defined(_DEBUG)
+		assert(cam);
+#endif
+		m_Camera = cam;
+	}
+
+	void Renderer::AddBasicModel(BasicModel* model, CXMMATRIX World)
+	{
+		m_BasicModels.push_back(model);
 
 		XMFLOAT4X4 Worldf;
 		XMStoreFloat4x4(&Worldf, World);
 
-		m_WorldMatrix.push_back(Worldf);
+		m_BasicModelsWorldMatrix.push_back(Worldf);
 	}
 
+	void Renderer::AddNormalMappedModel(NormalMappedModel* model, CXMMATRIX World)
+	{
+		m_NormalMappedModels.push_back(model);
+
+		XMFLOAT4X4 Worldf;
+		XMStoreFloat4x4(&Worldf, World);
+
+		m_NormalMappedModelsWorldMatrix.push_back(Worldf);
+	}
+
+	void Renderer::AddDirectionalLight(const Lights::DirectionalLight& Light)
+	{
+		if (m_DirLights.size() >= MAX_DIR_LIGHTS)
+		{
+#if defined(DEBUG) | defined(_DEBUG)
+			OutputDebugString("AddDirectionalLight() exceeds limit of MAX_DIR_LIGHTS. Directional Lights added after MAX_DIR_LIGHTS will not be considered.\n");
+#endif
+			return;
+		}
+
+		m_DirLights.push_back(Light);
+
+	}
 	void Renderer::Draw()
 	{
+#if defined(DEBUG) | defined(_DEBUG)
+		assert(m_Camera);
+#endif
+		MouseInput::Instance()->Instance()->Update();
+
 		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView, reinterpret_cast<const float*>(&Colors::Black));
 		m_DeviceContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -237,21 +288,35 @@ namespace NTEngine
 		m_DeviceContext->VSSetShader(Shaders::Basic->VertexShader, nullptr, 0);
 		m_DeviceContext->PSSetShader(Shaders::Basic->PixelShader, nullptr, 0);
 
-		static Lights::DirectionalLight light;
 
-		light.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-		light.Diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-		light.Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-		light.Direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		
+		XMMATRIX View = m_Camera->GetViewXM();
+		XMMATRIX Proj = m_Camera->GetProjXM();
+		XMVECTOR CamPos = m_Camera->GetPositionXM();
+		XMMATRIX TexTransform = XMMatrixIdentity();
 
-
-		for (UINT i = 0; i < m_Models.size(); ++i)
+		for (UINT i = 0; i < m_BasicModels.size(); ++i)
 		{
-			Shaders::Basic->SetTransform(XMLoadFloat4x4(&m_WorldMatrix[i]), TriangleDemo::Cam->GetViewXM(), TriangleDemo::Cam->GetProjXM(), XMMatrixIdentity());
+			Shaders::Basic->SetTransform(XMLoadFloat4x4(&m_BasicModelsWorldMatrix[i]), View, Proj, TexTransform);
 			Shaders::Basic->SetSampler(SamplerStates::SamLinear, 0);
-			Shaders::Basic->SetPerFrameData(TriangleDemo::Cam->GetPositionXM(), light);
+			Shaders::Basic->SetPerFrameData(&m_DirLights[0], m_DirLights.size(), CamPos);
 
-			m_Models[i]->Render(m_DeviceContext, Shaders::Basic);
+			m_BasicModels[i]->Render(m_DeviceContext);
+		}
+
+		m_DeviceContext->IASetInputLayout(InputLayouts::NormalMap);
+
+		m_DeviceContext->VSSetShader(Shaders::NormalMap->VertexShader, nullptr, 0);
+		m_DeviceContext->PSSetShader(Shaders::NormalMap->PixelShader, nullptr, 0);
+	
+
+		for (UINT i = 0; i < m_NormalMappedModels.size(); ++i)
+		{
+			Shaders::NormalMap->SetPerObjectData(XMLoadFloat4x4(&m_NormalMappedModelsWorldMatrix[i]), View, Proj, TexTransform);
+			Shaders::NormalMap->SetPerFrameData(&m_DirLights[0], m_DirLights.size(), CamPos);
+			Shaders::NormalMap->SetSampler(SamplerStates::SamLinear, 0);
+		
+			m_NormalMappedModels[i]->Render(m_DeviceContext);
 		}
 
 		HR(m_SwapChain->Present(0, 0));
@@ -341,13 +406,15 @@ namespace NTEngine
 
 		ReleaseCOM(m_DepthStencilView);
 		ReleaseCOM(m_DepthStencilBuffer);
-
+		  
 		ReleaseCOM(m_RenderTargetView);
+
 
 		InputLayouts::Destroy();
 		Shaders::Destroy();
-		TriangleDemo::Destroy();
 		SamplerStates::Destroy();
 		TextureManager::Instance()->Destroy();
+		MouseInput::Instance()->Destroy();
+		RasterizerStates::Destroy();
 	}
 }
